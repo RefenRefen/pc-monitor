@@ -227,8 +227,8 @@ public sealed partial class CompactWindow : Window
             hist.Select(h => h.Gpu), 100);
 
         double netMax = Math.Max(128 * 1024, hist.Count == 0 ? 0 : hist.Max(h => h.NetBps));
-        _net.Update(f.EtwAvailable ? "? " + Format.Rate(s.NetRxBps) : "n/a",
-            f.EtwAvailable ? "? " + Format.Rate(s.NetTxBps) : null, hist.Select(h => h.NetBps), netMax);
+        _net.Update(f.EtwAvailable ? "\u2193 " + Format.Rate(s.NetRxBps) : "n/a",
+            f.EtwAvailable ? "\u2191 " + Format.Rate(s.NetTxBps) : null, hist.Select(h => h.NetBps), netMax);
 
         double diskMax = Math.Max(512 * 1024, hist.Count == 0 ? 0 : hist.Max(h => h.DiskBps));
         _disk.Update("R " + Format.Rate(s.DiskReadBps), "W " + Format.Rate(s.DiskWriteBps), hist.Select(h => h.DiskBps), diskMax);
