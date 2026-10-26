@@ -1,0 +1,74 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+
+  <Package Name="PC Monitor"
+           Manufacturer="PC Monitor"
+           Version="1.0.0"
+           UpgradeCode="6f3f0c1e-8a3c-4f0e-9b57-3c1a2d6f7e11"
+           Scope="perMachine"
+           Compressed="yes">
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of PC Monitor is already installed." />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <Icon Id="AppIcon" SourceFile="..\src\PcMonitor.Widget\Assets\app.ico" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon" />
+
+    <!-- The widget may be running for the signed-in user: close it before files are replaced or removed. -->
+    <util:CloseApplication Id="CloseWidget" Target="PcMonitor.Widget.exe" CloseMessage="no" RebootPrompt="no" TerminateProcess="0" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="PcMonitor">
+        <Directory Id="CollectorDir" Name="collector" />
+        <Directory Id="WidgetDir" Name="widget" />
+      </Directory>
+    </StandardDirectory>
+
+    <Feature Id="Main" Title="PC Monitor" Level="1">
+      <ComponentRef Id="CollectorService" />
+      <ComponentGroupRef Id="CollectorFiles" />
+      <ComponentGroupRef Id="WidgetFiles" />
+      <ComponentRef Id="WidgetAutoStart" />
+    </Feature>
+  </Package>
+
+  <Fragment>
+    <!--
+      The collector runs as LocalSystem so it can open the kernel ETW session (exact per-application network and disk bytes).
+      Delayed automatic start keeps it out of the boot critical path; it restarts itself if it ever crashes.
+    -->
+    <Component Id="CollectorService" Directory="CollectorDir">
+      <File Id="CollectorExe" Source="$(var.PublishDir)collector\PcMonitor.Collector.exe" KeyPath="yes" />
+      <ServiceInstall Id="CollectorServiceInstall"
+                      Name="PcMonitorCollector"
+                      DisplayName="PC Monitor Collector"
+                      Description="Samples per-application CPU, memory, GPU, network and disk usage for the PC Monitor widget."
+                      Type="ownProcess"
+                      Start="auto"
+                      Account="LocalSystem"
+                      ErrorControl="normal"
+                      Vital="yes">
+        <ServiceConfig DelayedAutoStart="yes" OnInstall="yes" OnReinstall="yes" />
+        <util:ServiceConfig FirstFailureActionType="restart" SecondFailureActionType="restart" ThirdFailureActionType="restart"
+                            RestartServiceDelayInSeconds="5" ResetPeriodInDays="1" />
+      </ServiceInstall>
+      <ServiceControl Id="CollectorServiceControl" Name="PcMonitorCollector" Start="install" Stop="both" Remove="uninstall" Wait="yes" />
+    </Component>
+
+    <ComponentGroup Id="CollectorFiles" Directory="CollectorDir">
+      <Files Include="$(var.PublishDir)collector\**">
+        <Exclude Files="$(var.PublishDir)collector\PcMonitor.Collector.exe" />
+      </Files>
+    </ComponentGroup>
+
+    <ComponentGroup Id="WidgetFiles" Directory="WidgetDir">
+      <Files Include="$(var.PublishDir)widget\**" />
+    </ComponentGroup>
+
+    <!-- Every user gets the widget at sign-in (HKLM Run). Users can switch it off in Task Manager > Startup apps. -->
+    <Component Id="WidgetAutoStart" Directory="INSTALLFOLDER">
+      <RegistryValue Root="HKLM" Key="Software\Microsoft\Windows\CurrentVersion\Run" Name="PcMonitor"
+                     Type="string" Value="&quot;[WidgetDir]PcMonitor.Widget.exe&quot;" KeyPath="yes" />
+    </Component>
+  </Fragment>
+
+</Wix>

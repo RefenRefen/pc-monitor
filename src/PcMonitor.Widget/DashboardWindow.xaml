@@ -1,0 +1,152 @@
+<Window
+    x:Class="PcMonitor.Widget.DashboardWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:PcMonitor.Widget.ViewModels"
+    Title="PC Monitor">
+
+    <Grid x:Name="Root" RequestedTheme="Dark">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- title bar (also the drag region) -->
+        <Grid x:Name="TitleBar" Grid.Row="0" Height="40" Padding="14,0,140,0">
+            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                <Image Source="Assets/app.ico" Width="16" Height="16" />
+                <TextBlock Text="PC Monitor" FontSize="12" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <Ellipse x:Name="StatusDot" Width="8" Height="8" Fill="#FF5EE6A8" />
+                <TextBlock x:Name="StatusText" FontSize="12" Opacity="0.75" />
+            </StackPanel>
+        </Grid>
+
+        <!-- range + filters -->
+        <Grid Grid.Row="1" Padding="20,4,20,10" ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="260" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="Show the last" VerticalAlignment="Center" Opacity="0.7" />
+            <SelectorBar x:Name="RangeBar" Grid.Column="1" SelectionChanged="OnRangeChanged">
+                <SelectorBarItem Text="10 min" Tag="0.1666667" />
+                <SelectorBarItem Text="1 h" Tag="1" />
+                <SelectorBarItem Text="6 h" Tag="6" />
+                <SelectorBarItem Text="24 h" Tag="24" />
+                <SelectorBarItem Text="3 days" Tag="72" />
+                <SelectorBarItem Text="7 days" Tag="168" />
+                <SelectorBarItem Text="30 days" Tag="720" />
+                <SelectorBarItem Text="90 days" Tag="2160" />
+                <SelectorBarItem Text="Custom" Tag="custom" />
+            </SelectorBar>
+            <NumberBox x:Name="CustomHours" Grid.Column="2" Width="150" HorizontalAlignment="Left"
+                       Header="" PlaceholderText="hours" Minimum="1" Maximum="2160" Value="12"
+                       SpinButtonPlacementMode="Compact" SmallChange="1" LargeChange="6"
+                       Visibility="Collapsed" ValueChanged="OnCustomHoursChanged"
+                       ToolTipService.ToolTip="Any number of hours from 1 to 2160 (90 days)" />
+            <ToggleButton x:Name="SuspiciousToggle" Grid.Column="3" Click="OnFilterChanged"
+                          ToolTipService.ToolTip="Only show apps that are unsigned, run from user-writable folders or behave oddly">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <FontIcon Glyph="&#xE7BA;" FontSize="13" />
+                    <TextBlock Text="Needs attention" />
+                </StackPanel>
+            </ToggleButton>
+            <TextBox x:Name="SearchBox" Grid.Column="4" PlaceholderText="Search name, publisher or path"
+                     TextChanged="OnFilterChanged" />
+        </Grid>
+
+        <!-- body -->
+        <Grid Grid.Row="2" Padding="20,0,20,16" ColumnSpacing="18">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" MinWidth="560" />
+                <ColumnDefinition Width="420" />
+            </Grid.ColumnDefinitions>
+
+            <Grid Grid.Column="0" RowSpacing="12">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Grid x:Name="Cards" Grid.Row="0" ColumnSpacing="12" RowSpacing="12" />
+
+                <!-- list header -->
+                <Grid x:Name="ListHeader" Grid.Row="1" Padding="12,0,12,0" Height="30">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" MinWidth="200" />
+                        <ColumnDefinition Width="72" />
+                        <ColumnDefinition Width="120" />
+                        <ColumnDefinition Width="78" />
+                        <ColumnDefinition Width="60" />
+                        <ColumnDefinition Width="78" />
+                        <ColumnDefinition Width="78" />
+                        <ColumnDefinition Width="80" />
+                    </Grid.ColumnDefinitions>
+                </Grid>
+
+                <ListView x:Name="AppList" Grid.Row="2" SelectionMode="Single" SelectionChanged="OnAppSelected">
+                    <ListView.ItemContainerTransitions>
+                        <TransitionCollection />
+                    </ListView.ItemContainerTransitions>
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="vm:AppRowVm">
+                            <Grid Height="46" ColumnSpacing="0" AutomationProperties.Name="{x:Bind Name, Mode=OneWay}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" MinWidth="200" />
+                                    <ColumnDefinition Width="72" />
+                                    <ColumnDefinition Width="120" />
+                                    <ColumnDefinition Width="78" />
+                                    <ColumnDefinition Width="60" />
+                                    <ColumnDefinition Width="78" />
+                                    <ColumnDefinition Width="78" />
+                                    <ColumnDefinition Width="80" />
+                                </Grid.ColumnDefinitions>
+
+                                <Grid Grid.Column="0" ColumnSpacing="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="30" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <FontIcon Glyph="&#xE74C;" FontSize="18" Opacity="0.3" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="3,0,0,0" />
+                                    <Image Source="{x:Bind Icon, Mode=OneWay}" Width="26" Height="26" VerticalAlignment="Center" />
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="{x:Bind Name, Mode=OneWay}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{x:Bind Subtitle, Mode=OneWay}" FontSize="11" Opacity="0.6" TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                    <FontIcon Grid.Column="2" Glyph="&#xE7BA;" FontSize="14" VerticalAlignment="Center"
+                                              Visibility="{x:Bind FlagVisibility, Mode=OneWay}"
+                                              Foreground="{x:Bind FlagBrush, Mode=OneWay}"
+                                              ToolTipService.ToolTip="{x:Bind FlagTip, Mode=OneWay}" />
+                                </Grid>
+                                <TextBlock Grid.Column="1" Text="{x:Bind NowCpuText, Mode=OneWay}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,14,0" />
+                                <TextBlock Grid.Column="2" Text="{x:Bind AvgCpuText, Mode=OneWay}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,14,0" Opacity="0.85" />
+                                <TextBlock Grid.Column="3" Text="{x:Bind RamText, Mode=OneWay}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,14,0" Opacity="0.85" />
+                                <TextBlock Grid.Column="4" Text="{x:Bind GpuText, Mode=OneWay}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,14,0" Opacity="0.85" />
+                                <TextBlock Grid.Column="5" Text="{x:Bind NetText, Mode=OneWay}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,14,0" Opacity="0.85" />
+                                <TextBlock Grid.Column="6" Text="{x:Bind DiskText, Mode=OneWay}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,14,0" Opacity="0.85" />
+                                <ProgressBar Grid.Column="7" Minimum="0" Maximum="100" Value="{x:Bind Impact, Mode=OneWay}"
+                                             VerticalAlignment="Center" Margin="4,0,4,0" Height="4" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+
+                <TextBlock x:Name="EmptyText" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Opacity="0.6" Visibility="Collapsed" TextAlignment="Center" />
+            </Grid>
+
+            <Border Grid.Column="1" CornerRadius="10" BorderThickness="1" BorderBrush="#22FFFFFF" Background="#14FFFFFF" Padding="16,14,4,14">
+                <Grid x:Name="DetailsHost" />
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

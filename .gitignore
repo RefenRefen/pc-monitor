@@ -1,0 +1,31 @@
+# Build output
+bin/
+obj/
+artifacts/
+publish/
+TestResults/
+
+# Installer output
+*.msi
+*.wixobj
+*.wixpdb
+*.cab
+
+# IDE / user files
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+*.rsuser
+
+# Runtime data (usage database, logs, settings) if a dev run points at the repo
+*.db
+*.db-shm
+*.db-wal
+*.log
+*.tmp
+
+# OS
+Thumbs.db
+Desktop.ini

@@ -1,0 +1,19 @@
+<Project Sdk="WixToolset.Sdk/5.0.2">
+  <PropertyGroup>
+    <OutputName>PcMonitor</OutputName>
+    <OutputType>Package</OutputType>
+    <InstallerPlatform>x64</InstallerPlatform>
+    <Platform>x64</Platform>
+    <OutputPath>$(MSBuildThisFileDirectory)..\artifacts\</OutputPath>
+    <IntermediateOutputPath>$(MSBuildThisFileDirectory)obj\</IntermediateOutputPath>
+    <!-- Folder produced by installer\build.ps1 (collector\ and widget\ inside). -->
+    <PublishDir Condition="'$(PublishDir)' == ''">$(MSBuildThisFileDirectory)..\artifacts\publish\</PublishDir>
+    <DefineConstants>$(DefineConstants);PublishDir=$([MSBuild]::EnsureTrailingSlash('$(PublishDir)'))</DefineConstants>
+    <!-- ICE03/ICE60 trip over odd language strings inside third-party DLL version resources; harmless. -->
+    <SuppressIces>ICE03;ICE60</SuppressIces>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WixToolset.Util.wixext" Version="5.0.2" />
+  </ItemGroup>
+</Project>
